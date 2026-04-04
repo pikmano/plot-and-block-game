@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Background -->
+  <rect width="256" height="256" rx="40" fill="#141828"/>
+  <!-- City skyline silhouette -->
+  <rect x="10" y="170" width="30" height="70" fill="#2a3a6a"/>
+  <rect x="45" y="140" width="25" height="100" fill="#223060"/>
+  <rect x="75" y="155" width="35" height="85" fill="#1e2a58"/>
+  <rect x="115" y="130" width="28" height="110" fill="#2a3a6a"/>
+  <rect x="148" y="150" width="32" height="90" fill="#223060"/>
+  <rect x="185" y="145" width="26" height="95" fill="#1e2a58"/>
+  <rect x="216" y="160" width="30" height="80" fill="#2a3a6a"/>
+  <!-- Grid blocks -->
+  <rect x="64" y="40" width="52" height="52" rx="8" fill="#4ab8f7"/>
+  <rect x="122" y="40" width="52" height="52" rx="8" fill="#f7c83a"/>
+  <rect x="64" y="98" width="52" height="52" rx="8" fill="#f7834a"/>
+  <rect x="122" y="98" width="52" height="52" rx="8" fill="#a74af7"/>
+  <!-- Highlight on blocks -->
+  <rect x="70" y="46" width="40" height="12" rx="4" fill="#7dd4fc" opacity="0.5"/>
+  <rect x="128" y="46" width="40" height="12" rx="4" fill="#fde68a" opacity="0.5"/>
+  <rect x="70" y="104" width="40" height="12" rx="4" fill="#fdba74" opacity="0.5"/>
+  <rect x="128" y="104" width="40" height="12" rx="4" fill="#c084fc" opacity="0.5"/>
+</svg>

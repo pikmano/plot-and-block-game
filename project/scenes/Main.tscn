@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://b_main001"]
+
+[ext_resource type="Script" path="res://autoloads/GameManager.gd" id="1_main01"]
+
+[node name="Main" type="Node"]
+
+[node name="Loader" type="Node" parent="."]
+script = GDScript.new()
+
+[connection signal="ready" from="." to="." method="_ready"]

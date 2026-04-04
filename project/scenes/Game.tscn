@@ -1,0 +1,148 @@
+[gd_scene load_steps=7 format=3 uid="uid://b_game001"]
+
+[ext_resource type="Script" path="res://scripts/Game.gd" id="1_game01"]
+[ext_resource type="Script" path="res://scripts/game/Grid.gd" id="2_grid01"]
+[ext_resource type="Script" path="res://scripts/game/BlockTray.gd" id="3_tray01"]
+[ext_resource type="Script" path="res://scripts/game/CityBuilder.gd" id="4_city01"]
+[ext_resource type="Script" path="res://scripts/ui/HUD.gd" id="5_hud01"]
+[ext_resource type="Script" path="res://scripts/ui/GameOver.gd" id="6_go01"]
+
+[node name="Game" type="Node2D"]
+script = ExtResource("1_game01")
+
+[node name="CityBuilder" type="Node2D" parent="."]
+script = ExtResource("4_city01")
+
+[node name="GridContainer" type="Node2D" parent="."]
+position = Vector2(72, 160)
+
+[node name="Grid" type="Node2D" parent="GridContainer"]
+script = ExtResource("2_grid01")
+
+[node name="TrayContainer" type="Node2D" parent="."]
+position = Vector2(0, 820)
+
+[node name="BlockTray" type="Node2D" parent="TrayContainer"]
+script = ExtResource("3_tray01")
+
+[node name="HUD" type="CanvasLayer" parent="."]
+layer = 10
+script = ExtResource("5_hud01")
+
+[node name="HUDContainer" type="Control" parent="HUD"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="TopBar" type="ColorRect" parent="HUD/HUDContainer"]
+layout_mode = 1
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 720.0
+offset_bottom = 115.0
+color = Color(0.05, 0.07, 0.14, 0.94)
+
+[node name="ScoreLabel" type="Label" parent="HUD/HUDContainer"]
+layout_mode = 1
+offset_left = 0.0
+offset_top = 8.0
+offset_right = 720.0
+offset_bottom = 68.0
+text = "0"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 46
+
+[node name="HighScoreLabel" type="Label" parent="HUD/HUDContainer"]
+layout_mode = 1
+offset_left = 0.0
+offset_top = 72.0
+offset_right = 720.0
+offset_bottom = 110.0
+text = "BEST: 0"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1.0, 0.85, 0.3, 1)
+
+[node name="PauseButton" type="Button" parent="HUD/HUDContainer"]
+layout_mode = 1
+offset_left = 646.0
+offset_top = 10.0
+offset_right = 710.0
+offset_bottom = 66.0
+text = "II"
+theme_override_font_sizes/font_size = 18
+
+[node name="GameOverLayer" type="CanvasLayer" parent="."]
+layer = 20
+
+[node name="GameOverScreen" type="Control" parent="GameOverLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+visible = false
+script = ExtResource("6_go01")
+
+[node name="Overlay" type="ColorRect" parent="GameOverLayer/GameOverScreen"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.0, 0.0, 0.0, 0.78)
+
+[node name="Panel" type="PanelContainer" parent="GameOverLayer/GameOverScreen"]
+layout_mode = 1
+offset_left = 70.0
+offset_top = 240.0
+offset_right = 650.0
+offset_bottom = 980.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="GameOverLayer/GameOverScreen/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 22
+
+[node name="GameOverTitle" type="Label" parent="GameOverLayer/GameOverScreen/Panel/VBoxContainer"]
+layout_mode = 2
+text = "GAME OVER"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 40
+
+[node name="NewRecordLabel" type="Label" parent="GameOverLayer/GameOverScreen/Panel/VBoxContainer"]
+layout_mode = 2
+text = "NEW RECORD!"
+horizontal_alignment = 1
+visible = false
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(1.0, 0.85, 0.2, 1)
+
+[node name="ScoreLabel" type="Label" parent="GameOverLayer/GameOverScreen/Panel/VBoxContainer"]
+layout_mode = 2
+text = "SCORE\n0"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 34
+
+[node name="HighScoreLabel" type="Label" parent="GameOverLayer/GameOverScreen/Panel/VBoxContainer"]
+layout_mode = 2
+text = "BEST: 0"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(1.0, 0.85, 0.3, 1)
+
+[node name="ContinueButton" type="Button" parent="GameOverLayer/GameOverScreen/Panel/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 78)
+text = "CONTINUE (Watch Ad)"
+theme_override_font_sizes/font_size = 22
+
+[node name="MenuButton" type="Button" parent="GameOverLayer/GameOverScreen/Panel/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 78)
+text = "MAIN MENU"
+theme_override_font_sizes/font_size = 22
+
+[node name="ShareButton" type="Button" parent="GameOverLayer/GameOverScreen/Panel/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 78)
+text = "SHARE SCORE"
+theme_override_font_sizes/font_size = 22
