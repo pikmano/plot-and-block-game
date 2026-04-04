@@ -1,0 +1,16 @@
+# macOS
+.DS_Store
+
+# Keystore — NEVER commit this file, keep it safe locally
+*.keystore
+*.jks
+
+# Godot editor files (generated, not needed in git)
+project/.godot/
+project/android/build/
+
+# Build output
+builds/
+
+# Claude worktrees
+.claude/

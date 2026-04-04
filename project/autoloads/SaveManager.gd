@@ -15,7 +15,7 @@ func _load() -> void:
 		return
 	var text := file.get_as_text()
 	file.close()
-	var parsed := JSON.parse_string(text)
+	var parsed: Variant = JSON.parse_string(text)
 	if parsed is Dictionary:
 		_data = parsed
 
