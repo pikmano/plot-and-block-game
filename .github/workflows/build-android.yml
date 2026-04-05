@@ -3,7 +3,7 @@ name: Build Android APK
 on:
   push:
     branches: [main]
-  workflow_dispatch:  # lets you trigger it manually from GitHub
+  workflow_dispatch:
 
 env:
   GODOT_VERSION: 4.2.2
@@ -14,26 +14,69 @@ jobs:
   build-android:
     name: Export Android APK
     runs-on: ubuntu-latest
-    container:
-      image: barichello/godot-ci:4.2.2
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Godot export templates
+      - name: Install dependencies
         run: |
-          mkdir -p ~/.local/share/godot/export_templates/
-          mv /root/export_templates \
-            ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            wget unzip openjdk-17-jdk-headless \
+            adb libgles2 libxi6 libxrandr2
+
+      - name: Download Godot ${{ env.GODOT_VERSION }} headless
+        run: |
+          wget -q "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip" \
+            -O /tmp/godot.zip
+          unzip -q /tmp/godot.zip -d /tmp/
+          mv "/tmp/Godot_v${GODOT_VERSION}-stable_linux.x86_64" /usr/local/bin/godot
+          chmod +x /usr/local/bin/godot
+          godot --version
+
+      - name: Download Godot export templates
+        run: |
+          TEMPLATES_URL="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          wget -q "$TEMPLATES_URL" -O /tmp/templates.tpz
+          mkdir -p ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+          unzip -q /tmp/templates.tpz -d /tmp/templates_extracted/
+          mv /tmp/templates_extracted/templates/* \
+            ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/
+          echo "✅ Templates installed:"
+          ls ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/ | grep android
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Accept Android licenses
+        run: yes | sdkmanager --licenses || true
+
+      - name: Install Android build tools
+        run: |
+          sdkmanager \
+            "platform-tools" \
+            "build-tools;34.0.0" \
+            "platforms;android-34"
+
+      - name: Configure Godot Android SDK path
+        run: |
+          mkdir -p ~/.config/godot
+          cat > ~/.config/godot/editor_settings-4.tres << EOF
+          [gd_resource type="EditorSettings" format=3]
+          [resource]
+          export/android/android_sdk_path = "$ANDROID_SDK_ROOT"
+          EOF
 
       - name: Decode keystore from secret
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" \
             | base64 --decode > /tmp/release.keystore
+          echo "✅ Keystore decoded ($(wc -c < /tmp/release.keystore) bytes)"
 
-      - name: Inject keystore info into export preset
+      - name: Inject keystore paths into export preset
         run: |
+          cp project/export_presets.cfg project/export_presets.cfg.bak
           sed -i \
             "s|keystore/release=\"\"|keystore/release=\"/tmp/release.keystore\"|g" \
             project/export_presets.cfg
@@ -43,42 +86,57 @@ jobs:
           sed -i \
             "s|keystore/release_password=\"\"|keystore/release_password=\"${{ secrets.ANDROID_KEYSTORE_PASSWORD }}\"|g" \
             project/export_presets.cfg
+          sed -i \
+            "s|keystore/debug_user=\"\"|keystore/debug_user=\"${{ secrets.ANDROID_KEYSTORE_ALIAS }}\"|g" \
+            project/export_presets.cfg
+          sed -i \
+            "s|keystore/debug_password=\"\"|keystore/debug_password=\"${{ secrets.ANDROID_KEYSTORE_PASSWORD }}\"|g" \
+            project/export_presets.cfg
+          sed -i \
+            "s|keystore/debug=\"\"|keystore/debug=\"/tmp/release.keystore\"|g" \
+            project/export_presets.cfg
+          echo "✅ export_presets.cfg after injection:"
+          grep keystore project/export_presets.cfg
 
-      - name: Create output directory
+      - name: Import project (generate .godot cache)
+        run: |
+          cd project
+          timeout 60 godot --headless --import 2>&1 || true
+
+      - name: Create builds directory
         run: mkdir -p builds
 
-      - name: Export APK (release signed)
+      - name: Export signed APK
         run: |
           cd project
           godot --headless --export-release "$EXPORT_PRESET" \
             "../builds/${APK_NAME}.apk" 2>&1
-        continue-on-error: false
+          echo "Exit code: $?"
 
-      - name: Verify APK was created
+      - name: Verify APK
         run: |
           ls -lh builds/
-          test -f "builds/${APK_NAME}.apk" && echo "✅ APK created successfully" \
+          test -f "builds/${APK_NAME}.apk" \
+            && echo "✅ APK ready: $(du -h builds/${APK_NAME}.apk | cut -f1)" \
             || (echo "❌ APK not found" && exit 1)
 
-      - name: Upload APK as artifact
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.APK_NAME }}-release
+          name: ${{ env.APK_NAME }}-release-apk
           path: builds/${{ env.APK_NAME }}.apk
           retention-days: 30
 
-      # Also builds AAB (required for Google Play Store submission)
-      - name: Export AAB for Google Play
+      - name: Export AAB for Google Play Store
         run: |
           sed -i \
             "s|export_path=\"builds/plot-and-block.apk\"|export_path=\"builds/plot-and-block.aab\"|g" \
             project/export_presets.cfg
           cd project
           godot --headless --export-release "$EXPORT_PRESET" \
-            "../builds/${APK_NAME}.aab" 2>&1
-        continue-on-error: true  # AAB is bonus; APK is the hard requirement
+            "../builds/${APK_NAME}.aab" 2>&1 || true
 
-      - name: Upload AAB as artifact
+      - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.APK_NAME }}-release-aab
